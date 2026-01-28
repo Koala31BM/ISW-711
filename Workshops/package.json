@@ -1,0 +1,20 @@
+{
+  "name": "rest-api-express-mongo",
+  "version": "1.0.0",
+  "description": "Mi primer API",
+  "homepage": "https://github.com/Koala31BM/ISW-711#readme",
+  "bugs": {
+    "url": "https://github.com/Koala31BM/ISW-711/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Koala31BM/ISW-711.git"
+  },
+  "license": "ISC",
+  "author": "Kenneth",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
