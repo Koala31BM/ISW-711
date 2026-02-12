@@ -21,7 +21,7 @@ database.once('connected', () => {
 const app = express();
 
 app.use(express.json());
-const routes = require('./routes/routes'); // importar rutas
+const routes = require('./Rutas/routes'); // importar rutas
 app.use('/api', routes); // usar rutas
 
 

@@ -1,31 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 1 - Consume API</title>
-  <script>
-    const completed = (e) => {
-      document.getElementById('result').innerHTML = e.target.responseText;
-    };
-
-    const error = (e) => console.log(e.target.responseText);
-
-    function getHelloWorld() {
-      const ajaxRequest = new XMLHttpRequest();
-      ajaxRequest.addEventListener("load", completed);
-      ajaxRequest.addEventListener("error", error);
-      ajaxRequest.open("GET", "http://localhost:3000/hello");
-      ajaxRequest.send();
-    }
-  </script>
+  <title>Week 2 - Courses API</title>
 </head>
-
 <body>
-  <button onclick="getHelloWorld();">Hello</button>
-  <h3>Results:</h3>
-  <div id="result"></div>
-</body>
 
+  <h1>Courses API</h1>
+
+  <!-- ========================= -->
+  <!-- CREAR CURSO -->
+  <!-- ========================= -->
+
+  <h2>Create Course</h2>
+
+  <input type="text" id="name" placeholder="Course Name">
+  <input type="text" id="description" placeholder="Description">
+  <input type="number" id="duration" placeholder="Duration">
+  <button onclick="createCourse()">Create</button>
+
+  <hr>
+
+  <!-- ========================= -->
+  <!-- LISTAR CURSOS -->
+  <!-- ========================= -->
+
+  <h2>Course List</h2>
+  <button onclick="getCourses()">Load Courses</button>
+
+  <div id="result"></div>
+
+  <script>
+
+    // =========================
+    // LISTAR
+    // =========================
+    function getCourses() {
+      fetch("http://localhost:3000/api/courses")
+        .then(res => res.json())
+        .then(data => {
+          const result = document.getElementById("result");
+          result.innerHTML = "";
+
+          data.forEach(course => {
+            result.innerHTML += `
+              <p>
+                <strong>${course.name}</strong><br>
+                ${course.description}<br>
+                Duration: ${course.duration}
+              </p>
+              <hr>
+            `;
+          });
+        });
+    }
+
+    // =========================
+    // CREAR
+    // =========================
+    function createCourse() {
+
+      const course = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        duration: document.getElementById("duration").value
+      };
+
+      fetch("http://localhost:3000/api/courses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(course)
+      })
+      .then(res => res.json())
+      .then(() => {
+        alert("Course created!");
+        getCourses(); // refresca lista
+      });
+    }
+
+  </script>
+
+</body>
 </html>
