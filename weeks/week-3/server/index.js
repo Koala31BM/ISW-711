@@ -14,22 +14,14 @@ const app = express();
 // ========================
 // DATABASE CONNECTION
 // ========================
-const mongoString = process.env.DATABASE_URL || "mongodb://127.0.0.1:27017/todo-api";
+const mongoString = process.env.DATABASE_URL || "mongodb://127.0.0.1:27017/school-api";
 
 mongoose.connect(mongoString, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-});
-
-const database = mongoose.connection;
-
-database.on('error', (error) => {
-  console.log("Error de conexión:", error);
-});
-
-database.once('open', () => {
-  console.log('Database Connected');
-});
+})
+  .then(() => console.log("Database Connected"))
+  .catch((err) => console.log("Error de conexión:", err));
 
 // ========================
 // MIDDLEWARE
@@ -41,36 +33,37 @@ app.use(cors({
   methods: "*"
 }));
 
-// 🔥 SERVIR CARPETA CLIENT (ESTA ES LA CORRECCIÓN)
+// Servir frontend
 app.use(express.static(path.join(__dirname, '../client')));
 
 // ========================
 // IMPORT CONTROLLERS
 // ========================
 const {
-  taskPatch,
-  taskPost,
-  taskGet,
-} = require("./controllers/taskController.js");
-
-const {
   courseGet,
   coursePost,
   coursePut,
   courseDelete
-} = require("./controllers/courseController.js");
+} = require("./controllers/courseController");
+
+const {
+  professorGet,
+  professorPost,
+  professorPut,
+  professorDelete
+} = require("./controllers/professorController");
 
 // ========================
 // ROUTES
 // ========================
 
-// TASK ROUTES
-app.get("/api/tasks", taskGet);
-app.post("/api/tasks", taskPost);
-app.patch("/api/tasks", taskPatch);
-app.put("/api/tasks", taskPatch);
+// ===== PROFESSOR ROUTES =====
+app.get("/api/professors", professorGet);
+app.post("/api/professors", professorPost);
+app.put("/api/professors/:id", professorPut);
+app.delete("/api/professors/:id", professorDelete);
 
-// COURSE ROUTES
+// ===== COURSE ROUTES =====
 app.get("/api/courses", courseGet);
 app.post("/api/courses", coursePost);
 app.put("/api/courses/:id", coursePut);
@@ -79,6 +72,11 @@ app.delete("/api/courses/:id", courseDelete);
 // ========================
 // SERVER
 // ========================
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+
+console.log("courseGet:", courseGet);
+console.log("professorGet:", professorGet);

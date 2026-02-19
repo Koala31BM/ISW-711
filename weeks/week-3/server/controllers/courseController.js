@@ -1,83 +1,71 @@
-const Course = require('../models/coursemodel.js');
+const Course = require('../models/courseModel');
 
-// ==========================
-// GET ALL COURSES
-// ==========================
+// GET all courses
 const courseGet = async (req, res) => {
   try {
-    const courses = await Course.find();
-    console.log("Cursos encontrados:", courses);
-    res.status(200).json(courses);
+    const courses = await Course.find().populate('professorId');
+    res.json(courses);
   } catch (error) {
-    console.log("ERROR GET:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-// ==========================
-// POST CREATE COURSE
-// ==========================
+// POST create course
 const coursePost = async (req, res) => {
   try {
-    console.log("BODY RECIBIDO:", req.body);
+    const { name, code, description, professorId } = req.body;
 
-    const { name, credits } = req.body;
-
-    const newCourse = new Course({
-      name: name,
-      credits: Number(credits)
+    const course = new Course({
+      name,
+      code,
+      description,
+      professorId
     });
 
-    await newCourse.save();
-
-    console.log("CURSO GUARDADO:", newCourse);
-
-    res.status(201).json(newCourse);
-
+    const savedCourse = await course.save();
+    res.status(201).json(savedCourse);
   } catch (error) {
-    console.log("ERROR POST:", error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
-// ==========================
-// PUT UPDATE COURSE
-// ==========================
+// PUT update course
 const coursePut = async (req, res) => {
   try {
-    const { name, credits } = req.body;
-
-    const updated = await Course.findByIdAndUpdate(
+    const updatedCourse = await Course.findByIdAndUpdate(
       req.params.id,
-      { name, credits: Number(credits) },
+      req.body,
       { new: true }
     );
 
-    console.log("CURSO ACTUALIZADO:", updated);
+    if (!updatedCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
 
-    res.status(200).json(updated);
-
+    res.json(updatedCourse);
   } catch (error) {
-    console.log("ERROR PUT:", error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
-// ==========================
-// DELETE COURSE
-// ==========================
+// DELETE course
 const courseDelete = async (req, res) => {
   try {
-    await Course.findByIdAndDelete(req.params.id);
+    const deletedCourse = await Course.findByIdAndDelete(req.params.id);
 
-    console.log("CURSO ELIMINADO:", req.params.id);
+    if (!deletedCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
 
-    res.status(200).json({ message: "Course deleted" });
-
+    res.json({ message: "Course deleted successfully" });
   } catch (error) {
-    console.log("ERROR DELETE:", error);
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { courseGet, coursePost, coursePut, courseDelete };
+module.exports = {
+  courseGet,
+  coursePost,
+  coursePut,
+  courseDelete
+};
