@@ -1,18 +1,58 @@
+require('dotenv').config();
+
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const express = require('express');
+const mongoose = require('mongoose');
+const cors = require("cors");
+const path = require('path');
+
 const app = express();
 
-// database connection
-const mongoose = require("mongoose");
-mongoose.connect("mongodb://127.0.0.1:27017/todo-api");
+// ========================
+// DATABASE CONNECTION
+// ========================
+const mongoString = process.env.DATABASE_URL || "mongodb://127.0.0.1:27017/todo-api";
 
-// IMPORTAR CONTROLADOR DE TASKS (ya existía)
+mongoose.connect(mongoString, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+const database = mongoose.connection;
+
+database.on('error', (error) => {
+  console.log("Error de conexión:", error);
+});
+
+database.once('open', () => {
+  console.log('Database Connected');
+});
+
+// ========================
+// MIDDLEWARE
+// ========================
+app.use(express.json());
+
+app.use(cors({
+  origin: '*',
+  methods: "*"
+}));
+
+// 🔥 SERVIR CARPETA CLIENT (ESTA ES LA CORRECCIÓN)
+app.use(express.static(path.join(__dirname, '../client')));
+
+// ========================
+// IMPORT CONTROLLERS
+// ========================
 const {
   taskPatch,
   taskPost,
   taskGet,
 } = require("./controllers/taskController.js");
 
-// 🆕 IMPORTAR CONTROLADOR DE COURSES
 const {
   courseGet,
   coursePost,
@@ -20,41 +60,25 @@ const {
   courseDelete
 } = require("./controllers/courseController.js");
 
-// parser
-app.use(express.json());
+// ========================
+// ROUTES
+// ========================
 
-// cors
-const cors = require("cors");
-app.use(cors({
-  origin: '*',
-  methods: "*"
-}));
-
-// TASK ROUTES (no se tocan)
+// TASK ROUTES
 app.get("/api/tasks", taskGet);
 app.post("/api/tasks", taskPost);
 app.patch("/api/tasks", taskPatch);
 app.put("/api/tasks", taskPatch);
 
-// 🆕 COURSE ROUTES
+// COURSE ROUTES
 app.get("/api/courses", courseGet);
 app.post("/api/courses", coursePost);
 app.put("/api/courses/:id", coursePut);
 app.delete("/api/courses/:id", courseDelete);
 
-app.listen(3000, () => console.log(`Example app listening on port 3000!`));
-// UPDATE course
-app.put("/api/courses/:id", async (req, res) => {
-  const updatedCourse = await Course.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true }
-  );
-  res.json(updatedCourse);
-});
-
-// DELETE course
-app.delete("/api/courses/:id", async (req, res) => {
-  await Course.findByIdAndDelete(req.params.id);
-  res.json({ message: "Course deleted" });
+// ========================
+// SERVER
+// ========================
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });

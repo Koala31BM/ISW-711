@@ -1,86 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Week 2 - Courses API</title>
+<meta charset="UTF-8">
+<title>Course Manager</title>
+
+<script>
+
+const API_URL = "/api/courses";
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function showCreate() {
+  document.getElementById("createScreen").style.display = "block";
+  document.getElementById("coursesScreen").style.display = "none";
+}
+
+function showCourses() {
+  document.getElementById("createScreen").style.display = "none";
+  document.getElementById("coursesScreen").style.display = "block";
+  loadCourses();
+}
+
+/* =========================
+   LOAD COURSES
+========================= */
+
+function loadCourses() {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(courses => {
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      courses.forEach(course => {
+        resultDiv.innerHTML += `
+          <div>
+            <b>${course.name}</b> - ${course.credits} credits
+            <button onclick="editCourse('${course._id}','${course.name}',${course.credits})">Edit</button>
+            <button onclick="deleteCourse('${course._id}')">Delete</button>
+          </div>
+          <br>
+        `;
+      });
+    });
+}
+
+/* =========================
+   CREATE COURSE
+========================= */
+
+function createCourse() {
+  const name = document.getElementById("name").value;
+  const credits = document.getElementById("credits").value;
+
+  if (!name || !credits) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, credits })
+  })
+  .then(res => res.json())
+  .then(() => {
+    document.getElementById("name").value = "";
+    document.getElementById("credits").value = "";
+    alert("Course created successfully!");
+  });
+}
+
+/* =========================
+   DELETE COURSE
+========================= */
+
+function deleteCourse(id) {
+  fetch(`${API_URL}/${id}`, {
+    method: "DELETE"
+  })
+  .then(() => loadCourses());
+}
+
+/* =========================
+   EDIT COURSE
+========================= */
+
+function editCourse(id, name, credits) {
+  const newName = prompt("New course name:", name);
+  const newCredits = prompt("New credits:", credits);
+
+  if (!newName || !newCredits) return;
+
+  fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: newName, credits: newCredits })
+  })
+  .then(() => loadCourses());
+}
+
+</script>
 </head>
+
 <body>
 
-  <h1>Courses API</h1>
-
-  <!-- ========================= -->
-  <!-- CREAR CURSO -->
-  <!-- ========================= -->
-
+<!-- =========================
+     CREATE SCREEN
+========================= -->
+<div id="createScreen">
   <h2>Create Course</h2>
 
   <input type="text" id="name" placeholder="Course Name">
-  <input type="text" id="description" placeholder="Description">
-  <input type="number" id="duration" placeholder="Duration">
+  <input type="number" id="credits" placeholder="Credits">
   <button onclick="createCourse()">Create</button>
 
-  <hr>
+  <br><br>
+  <button onclick="showCourses()">View Courses</button>
+</div>
 
-  <!-- ========================= -->
-  <!-- LISTAR CURSOS -->
-  <!-- ========================= -->
+<!-- =========================
+     COURSES SCREEN
+========================= -->
+<div id="coursesScreen" style="display:none;">
 
-  <h2>Course List</h2>
-  <button onclick="getCourses()">Load Courses</button>
+  <h2>All Courses</h2>
+
+  <button onclick="showCreate()">Back</button>
+  <button onclick="loadCourses()">Reload</button>
+
+  <br><br>
 
   <div id="result"></div>
 
-  <script>
-
-    // =========================
-    // LISTAR
-    // =========================
-    function getCourses() {
-      fetch("http://localhost:3000/api/courses")
-        .then(res => res.json())
-        .then(data => {
-          const result = document.getElementById("result");
-          result.innerHTML = "";
-
-          data.forEach(course => {
-            result.innerHTML += `
-              <p>
-                <strong>${course.name}</strong><br>
-                ${course.description}<br>
-                Duration: ${course.duration}
-              </p>
-              <hr>
-            `;
-          });
-        });
-    }
-
-    // =========================
-    // CREAR
-    // =========================
-    function createCourse() {
-
-      const course = {
-        name: document.getElementById("name").value,
-        description: document.getElementById("description").value,
-        duration: document.getElementById("duration").value
-      };
-
-      fetch("http://localhost:3000/api/courses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(course)
-      })
-      .then(res => res.json())
-      .then(() => {
-        alert("Course created!");
-        getCourses(); // refresca lista
-      });
-    }
-
-  </script>
+</div>
 
 </body>
 </html>
