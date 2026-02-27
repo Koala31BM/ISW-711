@@ -1,3 +1,6 @@
+const User = require("../models/userModel");
+const bcrypt = require("bcrypt");
+
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -12,10 +15,11 @@ const authenticateToken = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
-        req.user = user;
+
+    req.user = user;
     next();
+
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: 'Error authenticating token' });
   }
 };
@@ -30,17 +34,24 @@ const generateToken = async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-    const token = await bcrypt.hash(email + password, 10);
+
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const token = Math.random().toString(36).substring(2);
 
     user.token = token;
     await user.save();
 
-    return res.status(201).json({ token: user.token });
+    return res.status(200).json({ token });
+
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: 'Error generating token' });
   }
 };
